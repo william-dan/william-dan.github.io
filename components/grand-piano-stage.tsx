@@ -28,7 +28,6 @@ import {
   Texture,
   Vector3,
   type Material,
-  type WebGLRenderTarget,
 } from "three";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
@@ -52,7 +51,6 @@ const PEDAL_ANCHOR_X_SHIFT = -0.08;
 const PEDAL_ANCHOR_Y_RATIO = 0.28;
 const PEDAL_ANCHOR_Z_SHIFT = 0.04;
 const STAGE_ENV_BASE_EXR_PATH = "/models/studio_small_03_1k.exr";
-const STAGE_ENV_UPGRADE_EXR_PATH = "/models/studio_small_03_4k.exr";
 const KEY_LIGHT_ORBIT_RADIUS = 8.2;
 const KEY_LIGHT_ORBIT_SPEED = 0.21;
 const KEY_LIGHT_HEIGHT_BASE = 2.3;
@@ -69,7 +67,6 @@ const ENV_INTENSITY_IDLE = 1.04;
 const ENV_INTENSITY_ACTIVE = 2.05;
 const ENV_ACTIVITY_SMOOTHING = 2.8;
 const ENV_INTENSITY_SMOOTHING = 4.1;
-const ENV_UPGRADE_IDLE_TIMEOUT_MS = 2600;
 const TARGET_DRIFT_IDLE = 0.01;
 const TARGET_DRIFT_ACTIVE = 0.052;
 const TARGET_DRIFT_SMOOTHING = 3.8;
@@ -391,7 +388,6 @@ function PianoStageEnvironment({
   const { gl, scene } = useThree();
   const environmentActivityRef = useRef(0);
   const environmentIntensityRef = useRef(ENV_INTENSITY_IDLE);
-  const requestHighQualityRef = useRef<(() => void) | null>(null);
 
   useFrame((state, delta) => {
     const sceneWithEnvironmentIntensity = scene as typeof scene & {
@@ -426,14 +422,6 @@ function PianoStageEnvironment({
   });
 
   useEffect(() => {
-    if (!isActive || !requestHighQualityRef.current) {
-      return;
-    }
-
-    requestHighQualityRef.current();
-  }, [isActive]);
-
-  useEffect(() => {
     const pmremGenerator = new PMREMGenerator(gl);
     const room = new RoomEnvironment();
     const previousEnvironment = scene.environment;
@@ -442,84 +430,14 @@ function PianoStageEnvironment({
     };
     const previousEnvironmentIntensity =
       sceneWithEnvironmentIntensity.environmentIntensity;
-    const renderTargets = new Set<WebGLRenderTarget>();
     const fallbackRenderTarget = pmremGenerator.fromScene(room, 0.05);
-    renderTargets.add(fallbackRenderTarget);
+    let activeRenderTarget = fallbackRenderTarget;
     let disposed = false;
-    let hasRequestedUpgrade = false;
-    let idleCallbackId: number | null = null;
-    let fallbackTimeoutId: number | null = null;
 
     scene.environment = fallbackRenderTarget.texture;
     sceneWithEnvironmentIntensity.environmentIntensity = ENV_INTENSITY_IDLE;
 
     const exrLoader = new EXRLoader();
-
-    const applyEnvironmentRenderTarget = (target: WebGLRenderTarget) => {
-      renderTargets.add(target);
-
-      if (disposed) {
-        return;
-      }
-
-      scene.environment = target.texture;
-    };
-
-    const requestUpgradeEnvironment = () => {
-      if (hasRequestedUpgrade || disposed) {
-        return;
-      }
-
-      hasRequestedUpgrade = true;
-
-      exrLoader.load(
-        STAGE_ENV_UPGRADE_EXR_PATH,
-        (upgradeTexture) => {
-          upgradeTexture.mapping = EquirectangularReflectionMapping;
-          const upgradeRenderTarget =
-            pmremGenerator.fromEquirectangular(upgradeTexture);
-          upgradeTexture.dispose();
-
-          if (disposed) {
-            upgradeRenderTarget.dispose();
-            return;
-          }
-
-          applyEnvironmentRenderTarget(upgradeRenderTarget);
-        },
-        undefined,
-        () => {
-          // Keep base environment when 4K upgrade fails.
-        }
-      );
-    };
-
-    requestHighQualityRef.current = requestUpgradeEnvironment;
-
-    const scheduleUpgradeAtIdle = () => {
-      const idleWindow = window as Window & {
-        requestIdleCallback?: (
-          callback: (deadline: { didTimeout: boolean; timeRemaining: () => number }) => void,
-          options?: { timeout: number }
-        ) => number;
-        cancelIdleCallback?: (handle: number) => void;
-      };
-
-      if (typeof idleWindow.requestIdleCallback === "function") {
-        idleCallbackId = idleWindow.requestIdleCallback(
-          () => {
-            requestUpgradeEnvironment();
-          },
-          { timeout: ENV_UPGRADE_IDLE_TIMEOUT_MS }
-        );
-        return;
-      }
-
-      fallbackTimeoutId = window.setTimeout(
-        requestUpgradeEnvironment,
-        ENV_UPGRADE_IDLE_TIMEOUT_MS
-      );
-    };
 
     exrLoader.load(
       STAGE_ENV_BASE_EXR_PATH,
@@ -533,40 +451,23 @@ function PianoStageEnvironment({
           return;
         }
 
-        applyEnvironmentRenderTarget(baseRenderTarget);
-        scheduleUpgradeAtIdle();
+        scene.environment = baseRenderTarget.texture;
+        activeRenderTarget = baseRenderTarget;
+        fallbackRenderTarget.dispose();
       },
       undefined,
       () => {
-        // Keep room fallback if base EXR fails, but still try upgrading directly.
-        scheduleUpgradeAtIdle();
+        // Keep room fallback if base EXR fails.
       }
     );
 
     return () => {
       disposed = true;
-      requestHighQualityRef.current = null;
-
-      const idleWindow = window as Window & {
-        cancelIdleCallback?: (handle: number) => void;
-      };
-      if (
-        idleCallbackId !== null &&
-        typeof idleWindow.cancelIdleCallback === "function"
-      ) {
-        idleWindow.cancelIdleCallback(idleCallbackId);
-      }
-      if (fallbackTimeoutId !== null) {
-        window.clearTimeout(fallbackTimeoutId);
-      }
 
       scene.environment = previousEnvironment;
       sceneWithEnvironmentIntensity.environmentIntensity =
         previousEnvironmentIntensity;
-
-      renderTargets.forEach((target) => {
-        target.dispose();
-      });
+      activeRenderTarget.dispose();
       room.dispose?.();
       pmremGenerator.dispose();
     };
