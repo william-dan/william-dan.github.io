@@ -1,3 +1,24 @@
+type PianoWork = {
+  id: string;
+  title: string;
+  audioSrc?: string;
+  available: boolean;
+};
+
+const pianoWorkFiles = ["O Tannenbaum.mp4"] as const;
+
+function getPianoWorkTitle(filename: string) {
+  return filename.replace(/\.[^.]+$/, "");
+}
+
+function getPianoWorkId(filename: string) {
+  return filename
+    .replace(/\.[^.]+$/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export const siteContent = {
   person: {
     name: "William Dan",
@@ -10,7 +31,7 @@ export const siteContent = {
   metadata: {
     title: "William Dan",
     description:
-      "Personal site and future blog archive for William Dan, focused on AI systems, backend engineering, and applied machine learning.",
+      "Personal site and piano works archive for William Dan, focused on AI systems, backend engineering, applied machine learning, and original piano studies.",
   },
   hero: {
     eyebrow: "Vol. I — Personal Site",
@@ -32,20 +53,18 @@ export const siteContent = {
     note:
       "I also coauthored two 2026 arXiv papers in multimodal learning, contributing across theoretical analysis, architecture, and figure design.",
   },
-  writings: {
-    status: "No essays published yet.",
-    summary:
-      "This archive is being prepared for future notes on software, systems, and research.",
-    cta: "Add first entry",
-    footnote: "The public archive will stay quiet until the first post is ready.",
-  },
-  contact: {
-    intro:
-      "I enjoy conversations about software, AI systems, research, and product ideas. These are the best ways to reach me.",
+  pianoWorks: {
+    intro: "A small archive of original piano works.",
+    items: pianoWorkFiles.map((filename) => ({
+      id: getPianoWorkId(filename),
+      title: getPianoWorkTitle(filename),
+      audioSrc: `/audio/piano-works/${encodeURIComponent(filename)}`,
+      available: true,
+    })) satisfies PianoWork[],
   },
   footer: {
     brand: "William Dan",
-    note: "Personal site and future notes archive. Built with Next.js and Three.js.",
+    note: "Personal site, piano works archive, and selected notes. Built with Next.js and Three.js.",
     updated: "Last updated: April 2026",
   },
   writePage: {

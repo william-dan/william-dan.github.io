@@ -27,6 +27,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link
+          rel="prefetch"
+          href="/models/grand_piano.glb"
+          as="fetch"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="prefetch"
+          href="/models/studio_small_03_1k.exr"
+          as="fetch"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body
         className={`${geistMono.variable} ${crimsonPro.variable} antialiased`}
         suppressHydrationWarning

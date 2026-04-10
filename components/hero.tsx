@@ -24,8 +24,8 @@ export function Hero() {
             <Link href="#about" className="hover:text-foreground transition-colors">
               About
             </Link>
-            <Link href="#writings" className="hover:text-foreground transition-colors">
-              Writings
+            <Link href="#piano-works" className="hover:text-foreground transition-colors">
+              Piano Works
             </Link>
             <Link href="#contact" className="hover:text-foreground transition-colors">
               Contact
@@ -52,7 +52,7 @@ export function Hero() {
               {hero.summary}
             </p>
             <div className="mt-8 flex items-center justify-center gap-5">
-              <Link
+              <a
                 href={person.cvHref}
                 target="_blank"
                 rel="noreferrer"
@@ -60,7 +60,7 @@ export function Hero() {
               >
                 <span>Open CV</span>
                 <span className="text-foreground-muted/60">↗</span>
-              </Link>
+              </a>
               <Link
                 href="#contact"
                 className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.24em] text-foreground-muted uppercase hover:text-foreground transition-colors"
