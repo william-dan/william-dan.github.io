@@ -63,7 +63,6 @@ function DocumentIcon() {
 }
 
 export function SiteFooter() {
-  const currentYear = new Date().getFullYear();
   const { footer, person } = siteContent;
   const contactLinks = [
     {
@@ -132,7 +131,7 @@ export function SiteFooter() {
 
           <div className="space-y-2 text-left lg:text-right">
             <p className="font-mono text-[10px] text-foreground-muted/40">
-              {currentYear} — All rights reserved
+              2026 — All rights reserved
             </p>
             <p className="font-mono text-[10px] text-foreground-muted/40">
               {footer.updated}

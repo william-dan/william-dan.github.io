@@ -24,6 +24,9 @@ export function Hero() {
             <Link href="#about" className="hover:text-foreground transition-colors">
               About
             </Link>
+            <Link href="#research" className="hover:text-foreground transition-colors">
+              Research
+            </Link>
             <Link href="#piano-works" className="hover:text-foreground transition-colors">
               Piano Works
             </Link>

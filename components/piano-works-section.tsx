@@ -319,7 +319,7 @@ export function PianoWorksSection() {
       <div className="container">
         <div className="mb-16 flex items-baseline gap-4">
           <span className="font-mono text-[10px] tracking-widest text-foreground-muted">
-            §2
+            §3
           </span>
           <h2 className="font-sans text-2xl font-light tracking-tight md:text-3xl">
             Piano Works

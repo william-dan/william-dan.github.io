@@ -29,7 +29,6 @@ export function AboutSection() {
 
           {/* Right Column - Details */}
           <div className="space-y-8">
-            {/* Focus Areas */}
             <div>
               <h3 className="font-mono text-[10px] tracking-[0.3em] text-foreground-muted uppercase mb-4">
                 Focus Areas
@@ -43,23 +42,13 @@ export function AboutSection() {
                 ))}
               </ul>
             </div>
-
-            {/* Currently */}
-            <div>
-              <h3 className="font-mono text-[10px] tracking-[0.3em] text-foreground-muted uppercase mb-4">
-                Selected Thread
-              </h3>
-              <p className="font-sans text-sm text-foreground/80 leading-relaxed">
-                {about.note}
-              </p>
-            </div>
           </div>
         </div>
 
         {/* Decorative Element - Like a page margin note */}
         <div className="mt-24 pt-8 border-t border-border/20">
           <p className="font-mono text-[10px] text-foreground-muted/50 italic">
-            {"Selected details only — the full background lives in the CV."}
+            {about.note}
           </p>
         </div>
       </div>
