@@ -85,6 +85,10 @@ export const siteContent = {
             label: "GitHub",
             href: "https://github.com/SEG-UNIBE/DynamicCBOM",
           },
+          {
+            label: "Thesis PDF",
+            href: "/MScThesis_WilliamDan_CBOM.pdf",
+          },
         ],
       },
       {
